@@ -14,7 +14,7 @@ internal class Program
     private const string EXIT_COMMAND_1 = "exit";
     private const string EXIT_COMMAND_2 = "quit";
     private const string BOT_NAME = "GPT 5 mini";
-    private const string DEFAULT_SYSTEM_MESSAGE = "You are ASP.NET Core developer. I have experience with C# 14. I am going to build a web application.";
+    private const string DEFAULT_SYSTEM_MESSAGE = "You are an ASP.NET Core developer. I have experience with C# 14. I am going to build a web application.";
     private const int MAX_CONVERSATION_HISTORY = 50; // Maximum messages to keep in history
     private const int DEFAULT_MAX_OUTPUT_TOKENS = 1000;
 
@@ -100,7 +100,8 @@ internal class Program
                 Console.WriteLine($"{BOT_NAME} is thinking ...");
 
                 // Get AI response with error handling
-                ChatCompletion response;
+                ChatCompletion? response = null;
+                bool requestFailed = false;
                 try
                 {
                     response = chatClient.CompleteChat(messages, requestOptions);
@@ -123,27 +124,30 @@ internal class Program
                     }
                     
                     Console.WriteLine();
-                    // Remove the failed user message from history
-                    messages.RemoveAt(messages.Count - 1);
-                    continue;
+                    requestFailed = true;
                 }
                 catch (TaskCanceledException)
                 {
                     Console.WriteLine("\n❌ Request timed out. The API took too long to respond.");
                     Console.WriteLine();
-                    messages.RemoveAt(messages.Count - 1);
-                    continue;
+                    requestFailed = true;
                 }
                 catch (HttpRequestException ex)
                 {
                     Console.WriteLine($"\n❌ Network Error: {ex.Message}");
                     Console.WriteLine("Please check your internet connection and try again.");
                     Console.WriteLine();
+                    requestFailed = true;
+                }
+
+                if (requestFailed)
+                {
+                    // Remove the failed user message from history
                     messages.RemoveAt(messages.Count - 1);
                     continue;
                 }
 
-                string assistantResponse = response.Content[0].Text;
+                string assistantResponse = response!.Content[0].Text;
 
                 // Display AI response
                 Console.WriteLine($"{BOT_NAME}: {assistantResponse}");
