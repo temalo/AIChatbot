@@ -2,13 +2,19 @@
 
 A console-based chatbot application that uses Azure OpenAI GPT-5-mini model for interactive conversations.
 
+> **Recent Improvements:** This project has undergone a comprehensive code review with significant enhancements including robust error handling, build fixes, conversation history management, and CI/CD integration. See [CODE_REVIEW.md](../CODE_REVIEW.md) and [IMPROVEMENTS_SUMMARY.md](../IMPROVEMENTS_SUMMARY.md) for details.
+
 ## Features
 
 - Interactive chat interface with Azure OpenAI GPT-5-mini
+- Robust error handling with graceful recovery
+- Automatic conversation history management (limits to 50 messages)
+- Comprehensive configuration validation
 - Dependency injection for clean architecture
 - Configuration-based setup using `appsettings.json`
 - Continuous conversation loop until user exits
 - Support for custom system messages
+- CI/CD ready with GitHub Actions
 
 ## Prerequisites
 
@@ -152,9 +158,17 @@ AzureAI/
 - Double-check your API key in `appsettings.json`
 - Ensure your Azure OpenAI resource is active and accessible
 
+## Contributing
+
+Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Changelog
+
+See [CHANGELOG.md](../CHANGELOG.md) for a list of changes and version history.
+
 ## License
 
-See the LICENSE file in the root of the repository.
+See the [LICENSE](../LICENSE) file in the root of the repository - MIT License.
 
 ## Contributing
 
