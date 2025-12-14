@@ -17,6 +17,14 @@ internal class Program
     private const string DEFAULT_SYSTEM_MESSAGE = "You are an ASP.NET Core developer. I have experience with C# 14. I am going to build a web application.";
     private const int MAX_CONVERSATION_HISTORY = 50; // Maximum messages to keep in history
     private const int DEFAULT_MAX_OUTPUT_TOKENS = 1000;
+    
+    // Error messages
+    private const string ERROR_RATE_LIMIT = "Rate limit exceeded. Please wait a moment and try again.";
+    private const string ERROR_AUTH_FAILED = "Authentication failed. Please check your API key in appsettings.json.";
+    private const string ERROR_DEPLOYMENT_NOT_FOUND = "Deployment not found. Please check your DeploymentName in appsettings.json.";
+    private const string ERROR_TIMEOUT = "Request timed out. The API took too long to respond.";
+    private const string ERROR_NETWORK = "Network Error: {0}";
+    private const string ERROR_EMPTY_RESPONSE = "Received empty response from API.";
 
     static void Main(string[] args)
     {
@@ -110,17 +118,17 @@ internal class Program
                 {
                     Console.WriteLine($"\n❌ API Error: {ex.Message}");
                     
-                    if (ex.Status == 429)
+                    var additionalMessage = ex.Status switch
                     {
-                        Console.WriteLine("Rate limit exceeded. Please wait a moment and try again.");
-                    }
-                    else if (ex.Status == 401)
+                        429 => ERROR_RATE_LIMIT,
+                        401 => ERROR_AUTH_FAILED,
+                        404 => ERROR_DEPLOYMENT_NOT_FOUND,
+                        _ => null
+                    };
+                    
+                    if (additionalMessage != null)
                     {
-                        Console.WriteLine("Authentication failed. Please check your API key in appsettings.json.");
-                    }
-                    else if (ex.Status == 404)
-                    {
-                        Console.WriteLine("Deployment not found. Please check your DeploymentName in appsettings.json.");
+                        Console.WriteLine(additionalMessage);
                     }
                     
                     Console.WriteLine();
@@ -128,13 +136,13 @@ internal class Program
                 }
                 catch (TaskCanceledException)
                 {
-                    Console.WriteLine("\n❌ Request timed out. The API took too long to respond.");
+                    Console.WriteLine($"\n❌ {ERROR_TIMEOUT}");
                     Console.WriteLine();
                     requestFailed = true;
                 }
                 catch (HttpRequestException ex)
                 {
-                    Console.WriteLine($"\n❌ Network Error: {ex.Message}");
+                    Console.WriteLine($"\n❌ {string.Format(ERROR_NETWORK, ex.Message)}");
                     Console.WriteLine("Please check your internet connection and try again.");
                     Console.WriteLine();
                     requestFailed = true;
@@ -147,7 +155,16 @@ internal class Program
                     continue;
                 }
 
-                string assistantResponse = response!.Content[0].Text;
+                // Validate response has content
+                if (response!.Content.Count == 0)
+                {
+                    Console.WriteLine($"\n❌ Error: {ERROR_EMPTY_RESPONSE}");
+                    Console.WriteLine();
+                    messages.RemoveAt(messages.Count - 1);
+                    continue;
+                }
+
+                string assistantResponse = response.Content[0].Text;
 
                 // Display AI response
                 Console.WriteLine($"{BOT_NAME}: {assistantResponse}");
